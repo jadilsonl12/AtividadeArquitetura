@@ -1,4 +1,7 @@
 package org.example.filters;
 
-public class Filter {
+import org.example.domain.Order;
+
+public interface Filter {
+    void execute(Order order);
 }
