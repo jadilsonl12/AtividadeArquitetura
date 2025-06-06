@@ -4,7 +4,7 @@ package org.example.service;
 import org.example.domain.Cart;
 import org.example.domain.Order;
 import org.example.filters.Filter;
-import org.example.infra.RabbitMQClient;
+import org.example.infra.RabbitMQConnection;
 import org.example.repository.OrderRepository;
 
 import java.util.List;
@@ -34,7 +34,7 @@ public class OrderService implements IOrderService {
         orderRepository.save(order);
         // envia notificação via RabbitMQ
         String mensagem = "Pedido " + order.getId() + " criado com status: " + order.getStatus();
-        RabbitMQClient.publishMessage(mensagem);
+        RabbitMQConnection.publishMessage(mensagem);
         return order;
     }
 
@@ -57,20 +57,24 @@ public class OrderService implements IOrderService {
 
             // Enviar atualizações de status
             try {
-                RabbitMQClient.publishMessage("Pedido confirmado");
+                RabbitMQConnection.publishMessage("Pedido confirmado");
                 Thread.sleep(2000); // Pausa de 2 segundos
 
-                RabbitMQClient.publishMessage("Nota fiscal emitida para pedido");
+                RabbitMQConnection.publishMessage("Nota fiscal emitida para pedido");
                 Thread.sleep(2000); // Pausa de 2 segundos
 
-                RabbitMQClient.publishMessage("Produto sendo preparado para envio");
+                RabbitMQConnection.publishMessage("Produto sendo preparado para envio");
                 Thread.sleep(2000); // Pausa de 2 segundos
 
-                RabbitMQClient.publishMessage("Produto enviado!: ");
+                RabbitMQConnection.publishMessage("Produto enviado!");
             } catch (InterruptedException e) {
                 System.err.println("Erro ao pausar a execução: " + e.getMessage());
                 Thread.currentThread().interrupt(); // Restaura o estado de interrupção da thread
+            } catch (Exception e) {
+                System.err.println("Erro ao enviar mensagens: " + e.getMessage());
             }
+        } else {
+            System.out.println("Pedido não encontrado ou já foi pago.");
         }
     }
 }

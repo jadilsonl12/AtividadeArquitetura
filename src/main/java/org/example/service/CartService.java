@@ -3,7 +3,6 @@ package org.example.service;
 import org.example.domain.Cart;
 import org.example.domain.Product;
 import org.example.repository.CartRepository;
-import org.example.repository.Repository;
 
 
 public class CartService implements ICartService {

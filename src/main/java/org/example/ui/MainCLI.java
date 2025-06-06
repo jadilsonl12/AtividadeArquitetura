@@ -40,7 +40,8 @@ public class MainCLI {
             System.out.println("3. Ver carrinho");
             System.out.println("4. Pagar e finalizar pedido");
             System.out.println("5. Acompanhar pedido");
-            System.out.println("6. Sair");
+            System.out.println("6. (ADMIN) Monitorar pedidos");
+            System.out.println("7. Sair");
             System.out.print("Escolha uma opção: ");
             int escolha = scanner.nextInt();
 
@@ -110,10 +111,24 @@ public class MainCLI {
 
                 case 5:
                     // Acompanhar pedido
-                    RabbitMQClient.consumeMessages();
+                    System.out.println("Acompanhando pedidos (consumindo mensagens):");
+                    new Thread(() -> RabbitMQClient.consumeMessages()).start();
+                    System.out.println("Pressione Enter para voltar ao menu principal.");
+                    scanner.nextLine(); // Consumir o Enter para retornar ao menu
+                    scanner.nextLine(); // Consumir possível input residual
                     break;
 
+
                 case 6:
+                    // Monitorar pedidos (ADMIN)
+                    System.out.println("Pedidos monitorados (ADMIN):");
+                    orderRepository.findAll().forEach(order ->
+                            System.out.printf("Pedido ID: %d | Status: %s | Total: R$ %.2f%n",
+                                    order.getId(), order.getStatus(), order.getTotal())
+                    );
+                    break;
+
+                case 7:
                     running = false;
                     System.out.println("Encerrando...");
                     break;
