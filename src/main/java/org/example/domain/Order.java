@@ -2,34 +2,37 @@ package org.example.domain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Order {
     private int id;
-    private Cart cart;
+    private Map<Product, Integer> products;
     private String status;
     private double total;
+    private boolean isPaid;
 
-    public Order(int id, Cart cart, String status) {
+    public Order(int id, Map<Product, Integer> products, String status, double total) {
         this.id = id;
-        this.cart = cart;
+        this.products = products;
         this.status = status;
-        this.total = cart.getTotalPrice(); // Inicializa com o preço total do carrinho
+        this.total = total;
+        this.isPaid = false;
+    }
+
+    public boolean isPaid() {
+        return isPaid;
+    }
+
+    public void setPaid(boolean paid) {
+        isPaid = paid;
     }
 
     public int getId() {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public Cart getCart() {
-        return cart;
-    }
-
-    public void setCart(Cart cart) {
-        this.cart = cart;
+    public Map<Product, Integer> getProducts() {
+        return products;
     }
 
     public String getStatus() {
@@ -46,9 +49,5 @@ public class Order {
 
     public void setTotal(double total) {
         this.total = total;
-    }
-
-    public List<Product> getProducts() {
-        return cart.getProducts(); // Obtém os produtos diretamente do carrinho associado
     }
 }

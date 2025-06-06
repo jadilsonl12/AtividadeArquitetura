@@ -7,4 +7,5 @@ import java.util.List;
 public interface IProductService {
     void addProduct(Product product);
     List<Product> listProducts();
+    Product findByName(String name);
 }

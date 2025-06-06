@@ -44,4 +44,22 @@ public class Product {
     public void setStock(int stock) {
         this.stock = stock;
     }
+
+    public void reduceStock(int quantity) {
+        if (quantity > 0 && quantity <= stock) {
+            stock -= quantity;
+        } else {
+            throw new IllegalArgumentException("Quantidade inválida.");
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Product{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", price=" + price +
+                ", stock=" + stock +
+                '}';
+    }
 }

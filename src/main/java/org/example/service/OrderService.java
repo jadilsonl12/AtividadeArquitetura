@@ -3,25 +3,74 @@ package org.example.service;
 
 import org.example.domain.Cart;
 import org.example.domain.Order;
-import org.example.repository.Repository;
+import org.example.filters.Filter;
+import org.example.infra.RabbitMQClient;
+import org.example.repository.OrderRepository;
+
+import java.util.List;
 
 public class OrderService implements IOrderService {
-    private final Repository<Order> orderRepository;
+    private final OrderRepository orderRepository;
+    private final List<Filter> filters;
 
-    public OrderService(Repository<Order> orderRepository) {
+    public OrderService(OrderRepository orderRepository, List<Filter> filters) {
         this.orderRepository = orderRepository;
+        this.filters = filters;
     }
 
     @Override
     public Order createOrder(Cart cart) {
-        int orderId = orderRepository.findAll().size() + 1;
-        Order order = new Order(orderId, cart, "Pendente");
+        int orderId = orderRepository.generateOrderId();
+        String status = "Pendente"; // Status inicial
+        double total = cart.getTotal(); // Calcula o total com base nos produtos
+
+        Order order = new Order(orderId, cart.getProducts(), status, total);
+
+        // Aplicar filtros
+        for (Filter filter : filters) {
+            filter.execute(order);
+        }
+
         orderRepository.save(order);
+        // envia notificação via RabbitMQ
+        String mensagem = "Pedido " + order.getId() + " criado com status: " + order.getStatus();
+        RabbitMQClient.publishMessage(mensagem);
         return order;
     }
 
     @Override
     public Order getOrderById(int id) {
         return orderRepository.findById(id);
+    }
+
+    @Override
+    public List<Order> listOrders() {
+        return orderRepository.findAll();
+    }
+
+    public void payOrder(int orderId) {
+        Order order = orderRepository.findById(orderId);
+        if (order != null && !order.isPaid()) {
+            order.setPaid(true);
+            order.setStatus("Confirmado");
+            orderRepository.save(order);
+
+            // Enviar atualizações de status
+            try {
+                RabbitMQClient.publishMessage("Pedido confirmado");
+                Thread.sleep(2000); // Pausa de 2 segundos
+
+                RabbitMQClient.publishMessage("Nota fiscal emitida para pedido");
+                Thread.sleep(2000); // Pausa de 2 segundos
+
+                RabbitMQClient.publishMessage("Produto sendo preparado para envio");
+                Thread.sleep(2000); // Pausa de 2 segundos
+
+                RabbitMQClient.publishMessage("Produto enviado!: ");
+            } catch (InterruptedException e) {
+                System.err.println("Erro ao pausar a execução: " + e.getMessage());
+                Thread.currentThread().interrupt(); // Restaura o estado de interrupção da thread
+            }
+        }
     }
 }

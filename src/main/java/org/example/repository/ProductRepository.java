@@ -30,4 +30,12 @@ public class ProductRepository implements Repository<Product> {
     public void deleteById(int id) {
         products.removeIf(product -> product.getId() == id);
     }
+
+    // Método adicional para buscar por nome
+    public Product findByName(String name) {
+        return products.stream()
+                .filter(product -> product.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+    }
 }
